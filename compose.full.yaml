@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOST: 0.0.0.0
+      MONGO_URI: "mongodb://app:${APP_DB_PASSWORD}@mongo:27017/pps14?authSource=pps14"
+      SESSION_SECRET: ${SESSION_SECRET:?Falta SESSION_SECRET}
+      APP_ORIGIN: http://localhost:3000
+      COOKIE_SECURE: "false"
+      PUBLIC_DIR: /app/backend/public
+      ALICE_PASSWORD: ${ALICE_PASSWORD:?Falta ALICE_PASSWORD}
+      BOB_PASSWORD: ${BOB_PASSWORD:?Falta BOB_PASSWORD}
+    ports:
+      - "127.0.0.1:3000:3000"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    cpus: 1.0
+    depends_on:
+      mongo:
+        condition: service_healthy

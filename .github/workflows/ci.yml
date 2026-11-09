@@ -1,0 +1,41 @@
+name: Pruebas PPS 1.4
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      MONGO_ROOT_PASSWORD: Pps14RootCI2026
+      APP_DB_PASSWORD: Pps14AppCI2026
+      MONGO_TEST_URI: mongodb://app:Pps14AppCI2026@127.0.0.1:27017/pps14_test?authSource=pps14
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Iniciar base exclusiva del laboratorio
+        run: docker compose up -d --wait mongo
+      - name: Instalar backend y ejecutar pruebas
+        working-directory: backend
+        run: |
+          npm ci
+          npm run test:ci
+      - name: Instalar frontend y construirlo
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Mostrar registros si falla
+        if: failure()
+        run: docker compose logs mongo
+      - name: Detener contenedores de CI
+        if: always()
+        run: docker compose down
